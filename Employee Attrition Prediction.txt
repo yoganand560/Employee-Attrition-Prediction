@@ -1,0 +1,84 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.preprocessing import LabelEncoder
+
+# Generate sample data
+np.random.seed(42)
+n = 1000
+data = {
+    'Age': np.random.randint(22, 65, n),
+    'Salary': np.random.randint(30000, 120000, n),
+    'Experience': np.random.randint(0, 40, n),
+    'Department': np.random.choice(['IT', 'HR', 'Finance', 'Marketing', 'Operations'], n),
+    'JobSatisfaction': np.random.randint(1, 11, n),
+    'Overtime': np.random.choice(['Yes', 'No'], n, p=[0.3, 0.7]),
+    'CommuteDistance': np.random.randint(1, 50, n),
+    'Attrition': np.random.choice(['Yes', 'No'], n, p=[0.2, 0.8])
+}
+df = pd.DataFrame(data)
+
+# Encode categorical variables
+le = LabelEncoder()
+df['Overtime'] = le.fit_transform(df['Overtime'])
+df['Attrition'] = le.fit_transform(df['Attrition'])
+df = pd.get_dummies(df, columns=['Department'])
+
+# Prepare features and target
+X = df.drop('Attrition', axis=1)
+y = df['Attrition']
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Train model
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+# Predictions
+y_pred = model.predict(X_test)
+
+# Evaluation
+cm = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix:\n", cm)
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# Visualization
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+# Attrition distribution
+attrition_counts = df['Attrition'].value_counts()
+axes[0,0].bar(['No', 'Yes'], attrition_counts, color=['green', 'red'])
+axes[0,0].set_title('Employee Attrition Distribution')
+axes[0,0].set_ylabel('Count')
+
+# Department vs Attrition
+dept_attrition = pd.crosstab(df['Department_IT'], df['Attrition'])
+dept_attrition.plot(kind='bar', ax=axes[0,1], color=['green', 'red'])
+axes[0,1].set_title('Attrition by Department (IT)')
+axes[0,1].set_ylabel('Count')
+axes[0,1].set_xticklabels(['Other', 'IT'], rotation=0)
+
+# Confusion Matrix Heatmap
+im = axes[1,0].imshow(cm, cmap='Blues')
+axes[1,0].set_title('Confusion Matrix')
+axes[1,0].set_ylabel('Actual')
+axes[1,0].set_xlabel('Predicted')
+axes[1,0].set_xticks([0, 1])
+axes[1,0].set_yticks([0, 1])
+axes[1,0].set_xticklabels(['Stay', 'Leave'])
+axes[1,0].set_yticklabels(['Stay', 'Leave'])
+plt.colorbar(im, ax=axes[1,0])
+
+# Job Satisfaction vs Attrition
+satisfaction_attrition = pd.crosstab(df['JobSatisfaction'], df['Attrition'])
+satisfaction_attrition.plot(ax=axes[1,1], color=['green', 'red'])
+axes[1,1].set_title('Attrition by Job Satisfaction Level')
+axes[1,1].set_ylabel('Count')
+axes[1,1].set_xlabel('Job Satisfaction Score')
+
+plt.tight_layout()
+plt.show()
