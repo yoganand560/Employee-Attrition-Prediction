@@ -4,11 +4,11 @@ This project implements a logistic regression model to predict whether an employ
 
 
 Technologies Used
-Python
-Pandas
-NumPy
-Scikit-learn
-Matplotlib
+Python, 
+Pandas, 
+NumPy, 
+Scikit-learn, 
+Matplotlib.
 
 Results
 The model provides:
